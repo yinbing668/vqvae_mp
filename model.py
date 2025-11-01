@@ -1,11 +1,11 @@
-from tkinter import NO
-from turtle import forward
-from numpy import pad
+# from tkinter import NO
+# from turtle import forward
+# from numpy import pad
 from torch import nn
 import torch.nn.functional as F
 import torch
 
-class Encoder(nn.Module):
+class MnistEncoder(nn.Module):
     def __init__(self):
         super().__init__()
         self.net = nn.Sequential(
@@ -30,7 +30,7 @@ class Decoder(nn.Module):
         # self.embbing = nn.Embedding(num_codes, code_dim, max_norm=1.0)
         # self.embbing.weight.data.uniform_(-1.0 / code_dim, 1.0 / code_dim)
         self.net = nn.Sequential(
-            # start shape (b, 16, 7, 7)
+            # start shape (b, 16, 8, 8)
             nn.ConvTranspose2d(16, 16, 3, 2, padding=1, output_padding=1),#expected 14
             nn.ReLU(),
             nn.ConvTranspose2d(16, 16, 3, 2, padding=1, output_padding=1),
@@ -65,18 +65,22 @@ class Coding(nn.Module):
         # x shape(b, h*w, 1, c)
         oup_emb_diff = x - self.embedding.weight
         oup_emb_distance = torch.norm(oup_emb_diff, dim=-1)
-        code = torch.argmin(oup_emb_distance, dim=-1)
+        codes = torch.argmin(oup_emb_distance, dim=-1)
         # code shape (b, h*w)
-        x_new = self.embedding(code)
+        x_new = self.embedding_code(codes, inp_shape)
+        return codes, x_new
+    
+    def embedding_code(self, codes, inp_shape):
+        x_new = self.embedding(codes)
         # x_new shape(b, h*w, c)
         x_new = torch.permute(x_new, (0, 2, 1))
         x_new = torch.reshape(x_new, inp_shape)
-        return code, x_new
-    
+        return x_new
+        
 if __name__ == "__main__":
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     x = torch.rand(10, 1, 28, 28).to(device)
-    encoder = Encoder().to(device)
+    encoder = MnistEncoder().to(device)
     decoder = Decoder().to(
         device
     )

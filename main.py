@@ -28,6 +28,7 @@ def main(args):
                              pin_memory=True, 
                              batch_size=args.batch_size,
                              num_workers=20)
+    # code_shape = (8,8)
     vae = VqVae(data_loader, device, args)
     print("*" * 10)
     print(vae.encoder)
@@ -39,11 +40,11 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("argument for training")
     parser.add_argument("--seed", type=int, default=1, help="seed")
-    parser.add_argument("--num_codes", type=int, default=50, help="num_latents")
-    parser.add_argument("--code_dim", type=int, default=8, help="latent_dims")
-    parser.add_argument("--num_latents", type=int, default=100, help="num_latents")
+    parser.add_argument("--num_codes", type=int, default=100, help="num_latents")
+    parser.add_argument("--code_dim", type=int, default=16, help="latent_dims")
     parser.add_argument("--batch_size", type=int, default=256, help="batch_size")
     parser.add_argument("--epoches", type=int, default=128, help="epoches")
+    parser.add_argument("--kld_reg", type=float, default=1, help="kl distance coefficient")
     args = parser.parse_args()
 
     torch.manual_seed(args.seed)
